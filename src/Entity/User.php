@@ -1,0 +1,139 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+use ApiPlatform\Metadata\ApiResource;
+use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+
+#[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: 'users')]
+#[ORM\UniqueConstraint(name: 'uniq_users_email', columns: ['email'])]
+#[ApiResource(operations: [])]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
+{
+    #[ORM\Id]
+    #[ORM\Column(type: 'string', length: 36)]
+    private ?string $id = null;
+
+    #[ORM\Column(length: 190)]
+    private string $email;
+
+    #[ORM\Column(name: 'password_hash', length: 255)]
+    private string $passwordHash;
+
+    #[ORM\Column(name: 'is_verified', type: 'boolean', options: ['default' => false])]
+    private bool $isVerified = false;
+
+    #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
+    private \DateTimeImmutable $createdAt;
+
+    /** @var Collection<int, SignupCode> */
+    #[ORM\OneToMany(targetEntity: SignupCode::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $signupCodes;
+
+    /** @var Collection<int, AuthToken> */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: AuthToken::class, orphanRemoval: true)]
+    private Collection $authTokens;
+
+    /** @var Collection<int, Note> */
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Note::class, orphanRemoval: true)]
+    private Collection $notes;
+
+    public function __construct()
+    {
+        $this->id = self::generateUuidV4();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->signupCodes = new ArrayCollection();
+        $this->authTokens = new ArrayCollection();
+        $this->notes = new ArrayCollection();
+    }
+
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): self
+    {
+        $this->email = strtolower(trim($email));
+
+        return $this;
+    }
+
+    public function getPassword(): string
+    {
+        return $this->passwordHash;
+    }
+
+    public function getPasswordHash(): string
+    {
+        return $this->passwordHash;
+    }
+
+    public function setPasswordHash(string $passwordHash): self
+    {
+        $this->passwordHash = $passwordHash;
+
+        return $this;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setIsVerified(bool $isVerified): self
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials(): void
+    {
+    }
+
+    private static function generateUuidV4(): string
+    {
+        $bytes = random_bytes(16);
+        $bytes[6] = chr((ord($bytes[6]) & 0x0F) | 0x40);
+        $bytes[8] = chr((ord($bytes[8]) & 0x3F) | 0x80);
+        $hex = bin2hex($bytes);
+
+        return sprintf(
+            '%s-%s-%s-%s-%s',
+            substr($hex, 0, 8),
+            substr($hex, 8, 4),
+            substr($hex, 12, 4),
+            substr($hex, 16, 4),
+            substr($hex, 20, 12),
+        );
+    }
+}

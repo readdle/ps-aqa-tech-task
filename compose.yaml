@@ -1,0 +1,60 @@
+services:
+  mysql:
+    image: mysql:8.4-oracle
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - mysql-data:/var/lib/mysql
+    entrypoint: |
+      sh -c "
+      echo 'CREATE DATABASE IF NOT EXISTS qa_task_dev; 
+      CREATE DATABASE IF NOT EXISTS qa_task_dev_test;
+      CREATE USER IF NOT EXISTS test@\"%\" IDENTIFIED BY \"test\";
+      GRANT CREATE, ALTER, INDEX, LOCK TABLES, REFERENCES, UPDATE, DELETE, DROP, SELECT, INSERT ON qa_task_dev_test.* TO test@\"%\";
+      FLUSH PRIVILEGES;' > /docker-entrypoint-initdb.d/init.sql;
+      /usr/local/bin/docker-entrypoint.sh --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      "
+    ports:
+      - "33444:3306"
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  php-web:
+    build:
+      target: php-web
+      args:
+        - LOCAL_IP=${LOCAL_IP:-127.0.0.1}
+    ports:
+      - "4444:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - php-cli
+      - mailhog
+
+  php-cli:
+    build:
+      target: php-cli
+    environment:
+      - APP_ENV=dev
+      - MYSQL_HOST=mysql
+      - MYSQL_PASSWORD=
+      - MYSQL_USER=root
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        php bin/console --no-interaction doctrine:migrations:migrate
+        APP_ENV=test php bin/console --no-interaction doctrine:migrations:migrate
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+
+volumes:
+  mysql-data: {}

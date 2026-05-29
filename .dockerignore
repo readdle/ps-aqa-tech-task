@@ -1,0 +1,16 @@
+# Directories
+.github/
+.idea/
+vendor/
+
+# Files
+.DS_Store
+.php-cs-fixer.cache
+.phpunit.result.cache
+compose.yaml
+Dockerfile
+Makefile
+phpstan.dist.neon
+
+# By mask
+*.md

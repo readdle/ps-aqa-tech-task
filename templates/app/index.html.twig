@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}QA Task - Auth + Notes{% endblock %}
+
+{% block stylesheets %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/styles.css') }}">
+{% endblock %}
+
+{% block body %}
+    <main class="app-shell">
+        <header class="page-head">
+            <p class="kicker">Workspace</p>
+            <h1>Notes Console</h1>
+        </header>
+
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+
+        <section id="auth-section" class="view-block">
+            <div class="auth-grid">
+                <article class="panel auth-card">
+                    <h2>Sign Up</h2>
+                    <form id="signup-form">
+                        <label>Email <input type="email" id="signup-email" required></label>
+                        <label>Password <input type="password" id="signup-password" minlength="8" required></label>
+                        <button type="submit">Sign Up</button>
+                    </form>
+                    <small>Confirmation code is delivered via MailHog SMTP.</small>
+                </article>
+
+                <article class="panel auth-card">
+                    <h2>Sign In</h2>
+                    <form id="signin-form">
+                        <label>Email <input type="email" id="signin-email" required></label>
+                        <label>Password <input type="password" id="signin-password" required></label>
+                        <button type="submit">Sign In</button>
+                    </form>
+                </article>
+            </div>
+        </section>
+
+        <section id="account-section" class="view-block hidden">
+            <div class="account-header panel">
+                <h2 id="account-title">Account</h2>
+                <div class="account-actions">
+                    <button id="nav-notes-button" class="secondary" type="button">Notes</button>
+                    <button id="nav-profile-button" class="secondary" type="button">Profile</button>
+                    <button id="logout-button" class="danger" type="button">Log Out</button>
+                </div>
+            </div>
+
+            <div id="notes-view">
+                <div class="dashboard-grid">
+                    <section class="panel section-card">
+                        <h2>Create</h2>
+                        <form id="create-note-form">
+                            <label>Title <input type="text" id="note-title" required></label>
+                            <label>Content <textarea id="note-content" rows="7"></textarea></label>
+                            <button type="submit">Create Note</button>
+                        </form>
+                    </section>
+
+                    <section class="panel section-card">
+                        <h2>List</h2>
+                        <form id="search-notes-form" class="list-controls">
+                            <label>Query <input type="text" id="notes-search-query" placeholder="Search notes"></label>
+                            <label>Field
+                                <select id="notes-search-field">
+                                    <option value="all">Title + Content</option>
+                                    <option value="title">Title only</option>
+                                    <option value="content">Content only</option>
+                                </select>
+                            </label>
+                            <label>Sort
+                                <select id="notes-search-sort">
+                                    <option value="updated_desc">Updated (newest first)</option>
+                                    <option value="updated_asc">Updated (oldest first)</option>
+                                    <option value="title_asc">Title (A-Z)</option>
+                                    <option value="title_desc">Title (Z-A)</option>
+                                </select>
+                            </label>
+                            <label>Page Size
+                                <select id="notes-page-size">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
+                                </select>
+                            </label>
+                        </form>
+
+                        <div class="list-meta">
+                            <span id="notes-list-total">0 notes</span>
+                            <div class="pagination-controls">
+                                <button id="notes-prev-page" class="secondary" type="button">Prev</button>
+                                <span id="notes-page-info">Page 1 / 1</span>
+                                <button id="notes-next-page" class="secondary" type="button">Next</button>
+                            </div>
+                        </div>
+
+                        <div id="notes-list" class="notes-list"></div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="profile-view" class="hidden">
+                <div class="panel profile-card">
+                    <h2>Profile</h2>
+                    <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+                    <p><strong>User ID:</strong> <span id="profile-id">-</span></p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('assets/app.js') }}" defer></script>
+{% endblock %}

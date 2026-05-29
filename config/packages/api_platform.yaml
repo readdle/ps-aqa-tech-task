@@ -1,0 +1,17 @@
+api_platform:
+    title: QA Task API
+    version: 1.0.0
+    enable_swagger_ui: false
+    enable_re_doc: false
+    enable_entrypoint: false
+    swagger:
+        api_keys:
+            JWT:
+                name: Authorization
+                type: header
+    formats:
+        json: ['application/json']
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']

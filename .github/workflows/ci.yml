@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-migrate-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: qa_task_dev_test
+          MYSQL_USER: test
+          MYSQL_PASSWORD: test
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+
+    env:
+      APP_ENV: test
+      KERNEL_CLASS: App\Kernel
+      APP_SECRET: '$ecretf0rt3st'
+      APP_MODE: healthy
+      DATABASE_URL: 'mysql://test:test@mysql/qa_task_dev'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Dockerfile (php-cli target)
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          context: .
+          target: php-cli
+          tags: qa-task-php-cli:ci
+          load: true
+
+      - name: Build Dockerfile (php-web target)
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          context: .
+          target: php-web
+          build-args: |
+            LOCAL_IP=127.0.0.1
+          tags: qa-task-php-web:ci
+          load: true
+
+#      - name: Run Composer In Docker
+#        run: |
+#          make install
+
+      - name: Run Migrations In Docker
+        run: |
+          docker run --rm \
+            -u root \
+            --add-host mysql:host-gateway \
+            -e APP_ENV=test \
+            -e DATABASE_URL='mysql://test:test@mysql/qa_task_dev' \
+            -e KERNEL_CLASS='App\Kernel' \
+            -e APP_SECRET='$ecretf0rt3st' \
+            qa-task-php-cli:ci \
+            php bin/console doctrine:migrations:migrate --no-interaction
+
+      - name: Run Tests In Docker
+        run: |
+          docker run --rm \
+            -u root \
+            --add-host mysql:host-gateway \
+            -e APP_ENV=test \
+            -e DATABASE_URL='mysql://test:test@mysql/qa_task_dev' \
+            -e KERNEL_CLASS='App\Kernel' \
+            -e APP_SECRET='$ecretf0rt3st' \
+            qa-task-php-cli:ci \
+            vendor/bin/phpunit -c phpunit.dist.xml
