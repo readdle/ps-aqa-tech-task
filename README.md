@@ -48,7 +48,7 @@ After setup is complete, open the URLs below and verify the app is available.
 ## URLs
 
 - App UI: [http://localhost:4444](http://localhost:4444)
-- API docs JSON: [http://localhost:4444/api/doc](http://localhost:4444/api/doc)
+- API docs JSON: [http://localhost:4444/api/doc.json](http://localhost:4444/api/doc.json)
 - API docs UI: [http://localhost:4444/api/doc](http://localhost:4444/api/doc)
 - [MailHog](https://github.com/mailhog/mailhog): [http://localhost:8025](http://localhost:8025)
   - Sign-up confirmation emails should appear here.
